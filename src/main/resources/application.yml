@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: bootPractice-AdvancedJWT
+  devtools:
+    livereload:
+      enabled: true
+  thymeleaf:
+    cache: false
+    prefix: file:src/main/resources/templates/
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/preon?useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 1234
+
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: create
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+  web:
+    resources:
+      static-locations: file:src/main/resources/static/
+
+myJwtRandomKey :  3P59'DkuUd{\`X4~:VU*rI8_FVD`dsJ[Khomr=DLH-sm4CEH9PL
+myJwtRandomKeyHashed :  $2a$10$ZnH0fjFA65uPbCVpLOWGD.6gWONscDe3fk1d9eSSVgLY7jpW7hIZW`"
+
+accessTokenExpiration : 600000 #60 * 10 * 1000L
+refreshTokenExpiration : 3600000 #60 * 60 * 1000L
