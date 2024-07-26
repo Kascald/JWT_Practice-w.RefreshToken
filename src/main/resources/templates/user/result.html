@@ -1,64 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <script src="https://getbootstrap.com/docs/5.3/assets/js/color-modes.js"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.122.0">
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/sign-in/">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+
+    <meta charset="utf-8">
+    <title>로그인 결과</title>
+    <link th:href="@{/css/sign-in.css}" rel="stylesheet">
+    <style>
+
+        html,
+        body {
+            height: 100%;
+            padding: 20px;
+        }
+
+        .ctn {
+            max-width: 800px;
+            height: max-content;
+            margin: auto;
+        }
+        .textarea {
+            height: 150px;
+        }
+        section {
+            margin: auto;
+            padding: 20px;
+        }
+        .output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        #headerOutput {
+            color: #fb015b;
+            border: 1px solid #fb015b;
+        }
+        #payloadOutput {
+            color: #d63aff;
+            border: 1px solid #d63aff;
+        }
+        #signatureOutput {
+            color: #00b9f1;
+            border: 1px solid #00b9f1;
+            margin-bottom: 100px;
+        }
+
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+
+        .bi {
+            vertical-align: -.125em;
+            fill: currentColor;
+        }
+
+
+        .nav-scroller .nav {
+            display: flex;
+            flex-wrap: nowrap;
+            padding-bottom: 1rem;
+            margin-top: -1px;
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .btn-bd-primary {
+            --bd-violet-bg: #712cf9;
+            --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+            --bs-btn-font-weight: 600;
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-bg: var(--bd-violet-bg);
+            --bs-btn-border-color: var(--bd-violet-bg);
+            --bs-btn-hover-color: var(--bs-white);
+            --bs-btn-hover-bg: #6528e0;
+            --bs-btn-hover-border-color: #6528e0;
+            --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+            --bs-btn-active-color: var(--bs-btn-hover-color);
+            --bs-btn-active-bg: #5a23c8;
+            --bs-btn-active-border-color: #5a23c8;
+        }
+
+        .bd-mode-toggle {
+            z-index: 1500;
+        }
+
+        .bd-mode-toggle .dropdown-menu .active .bi {
+            display: block !important;
+        }
+        .token-wrapper {
+            position: relative;
+            max-width: 1000px;
+            word-break: break-all;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            transition: filter 0.3s ease;
+        }
+        .limited-width {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+        }
+        .token-wrapper:hover .limited-width {
+            filter: blur(2px);
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .token-wrapper:hover .overlay {
+            display: block;
+        }
+
+        .copy-notice {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            display: none;
+        }
+
+    </style>
 </head>
-<body>
-<h1>로그인 결과 보기</h1>
-<p>Access Token: <span id="AccessToekn"></span></p>
-<p>Refresh Token: <span id="refreshToken"></span></p>
+<body class="align-items-center py-4 bg-body-tertiary">
+<section class="container">
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+        <symbol id="check2" viewBox="0 0 16 16">
+            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+        </symbol>
+        <symbol id="circle-half" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+        </symbol>
+        <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+            <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+            <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+        </symbol>
+        <symbol id="sun-fill" viewBox="0 0 16 16">
+            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+        </symbol>
+    </svg>
 
+    <div class="flex-content col g-3">
+        <h1 class="h3 mb-3 fw-bold">로그인 결과 보기</h1>
+        <div class="col-8">
+            <p class="mb-3">Access Token:
+                <div class="token-wrapper">
+                    <div id="accessToken" class="limited-width"></div>
+                    <div class="overlay">Copy</div>
+                </div>
+            </p>
+<!--             <div id="AccessToekn" class="limited-width my-3"></div> -->
+
+        </div>
+        <div class="col-auto my-3">
+            <p class="mb-3 col">Refresh Token: </p> <p id="refreshToken">F12 - 애플리케이션 - 쿠키 에서 확인</p>
+        </div>
+        <p id="copyNotice" class="copy-notice">Access Token copied to clipboard!</p>
+
+        <a href="/" class="link-secondary link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover"
+           style="text-decoration: none;">Back to Main</a>
+    </div>
+    </section>
+
+    <section class="ctn">
+        <h2 class="text-center">JWT Debugger</h2>
+        <div class="mb-3">
+            <label for="jwtInput" class="form-label">Enter your JWT</label>
+            <textarea class="form-control textarea" id="jwtInput"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="decodeJWT()">Decode JWT</button>
+        <h2>Header</h2>
+        <div class="output bg-light" id="headerOutput"></div>
+        <h2>Payload</h2>
+        <div class="output bg-light" id="payloadOutput"></div>
+        <h2>Signature</h2>
+        <div class="output bg-light" id="signatureOutput"></div>
+    </section>
 <script>
-    // Access Token을 로컬 스토리지에서 가져와서 표시
-    document.getElementById('AccessToekn').textContent = localStorage.getItem('AccessToekn');
+    const accessTokenElement = document.getElementById('accessToken');
+    const copyNotice = document.getElementById('copyNotice');
 
-    // Refresh Token은 HttpOnly 쿠키에 저장되므로 JavaScript로 접근할 수 없습니다.
-    document.getElementById('Refresh-Token').textContent = 'Stored in HttpOnly Cookie';
+    const accessToken = localStorage.getItem('AccessToekn'); // 주의: 'AccessToken' 오타 수정
+    if (accessToken) {
+        accessTokenElement.textContent = accessToken;
+    } else {
+        accessTokenElement.textContent = 'No Access Token found';
+    }
 
-
-    function makeAuthenticatedRequest(url, options ={}) {
-        let accessToken = localStorage.getItem('AccessToken');
-
-        if(!accessToken) {
-            return refreshAccessToken().then(newAccessToken => {
-                return fetchWithToken(url, newAccessToken, options);
-            });
-        }else {
-            return fetchWithToken(url, accessToken, options).then(response => {
-                if(response.status === 401) {
-                    return refreshAccessToken().then(newAccessToken => {
-                        return fetchWithToken(url, newAccessToken, options);
-                    });
-                }
-                return response;
+    const tokenWrapper = document.querySelector('.token-wrapper');
+    tokenWrapper.addEventListener('click', (event) => {
+        if (event.target !== tokenWrapper.querySelector('.overlay')) {
+            const token = accessTokenElement.textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                copyNotice.style.display = 'block';
+                setTimeout(() => {
+                    copyNotice.style.display = 'none';
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
             });
         }
-    }
-
-    function fetchWithToken(url, token ,options) {
-        options.headers = {
-            ...options.headers,
-            'Authorization': 'Bearer' + token
-        };
-        return fetch(url,options);
-    }
-
-    function refreshAccessToken() {
-        return fetch('/reissue', {
-            method: 'POST',
-            credentials: 'include'
-        })
-            .then(response => response.json())
-            .then(data => {
-                const newAccessToken = data.accessToken;
-                localStorage.setItem('AccessToken', newAccessToken);
-                return newAccessToken;
-            })
-            .catch(error => {
-                console.error("Error refreshing Token", error);
-            })
-    }
+    });
 </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function decodeJWT() {
+            const jwt = document.getElementById('jwtInput').value;
+            const parts = jwt.split('.');
+            if (parts.length !== 3) {
+                alert('Invalid JWT');
+                return;
+            }
+
+            const header = JSON.parse(atob(parts[0]));
+            const payload = JSON.parse(atob(parts[1]));
+            const signature = parts[2];
+
+            document.getElementById('headerOutput').textContent = JSON.stringify(header, null, 2);
+            document.getElementById('payloadOutput').textContent = JSON.stringify(payload, null, 2);
+            document.getElementById('signatureOutput').textContent = signature;
+        }
+    </script>
+
+    <script>
+        // Access Token을 로컬 스토리지에서 가져와서 표시
+        document.getElementById('AccessToken').textContent = localStorage.getItem('AccessToekn');
+
+        // Refresh Token은 HttpOnly 쿠키에 저장되므로 JavaScript로 접근할 수 없습니다.
+        document.getElementById('Refresh-Token').textContent = 'Stored in HttpOnly Cookie';
+
+
+        function makeAuthenticatedRequest(url, options = {}) {
+            let accessToken = localStorage.getItem('AccessToken');
+
+            if (!accessToken) {
+                return refreshAccessToken().then(newAccessToken => {
+                    return fetchWithToken(url, newAccessToken, options);
+                });
+            } else {
+                return fetchWithToken(url, accessToken, options).then(response => {
+                    if (response.status === 401) {
+                        return refreshAccessToken().then(newAccessToken => {
+                            return fetchWithToken(url, newAccessToken, options);
+                        });
+                    }
+                    return response;
+                });
+            }
+        }
+
+        function fetchWithToken(url, token, options) {
+            options.headers = {
+                ...options.headers,
+                'Authorization': 'Bearer' + token
+            };
+            return fetch(url, options);
+        }
+
+        function refreshAccessToken() {
+            return fetch('/reissue', {
+                method: 'POST',
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const newAccessToken = data.accessToken;
+                    localStorage.setItem('AccessToken', newAccessToken);
+                    return newAccessToken;
+                })
+                .catch(error => {
+                    console.error("Error refreshing Token", error);
+                })
+        }
+    </script>
 </body>
 </html>

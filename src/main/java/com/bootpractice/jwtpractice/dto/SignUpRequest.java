@@ -48,7 +48,7 @@ public class SignUpRequest implements UserRequest{
 //		Date thisUserBirthDayDate = this.birthDayToDate(this.getBirthDay());
 		return User.builder()
 				.username(this.getEmail())
-				.password(passwordHasher.hash(this.getPassword()))
+//				.password(passwordHasher.hash(this.getPassword()))
 				.firstName(this.getFirstName())
 				.lastName(this.getLastName())
 				.email(this.getEmail())

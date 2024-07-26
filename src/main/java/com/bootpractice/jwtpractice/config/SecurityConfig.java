@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -82,7 +83,7 @@ public class SecurityConfig {
 				.requestMatchers("/user/api/login", "/",
 				                 "/user/api/signup","/user/**",
 				                 "/user/signup","/login","/user/result","/result",
-				                 "/css/**","/favicon.ico").permitAll()
+				                 "/css/**","/img/**","/js/**","/favicon.ico").permitAll()
 				//				.requestMatchers("/roleTest/**").hasAuthority("ADMIN")
 				.requestMatchers("/reissue").permitAll()
 				.requestMatchers("/roleTest/**").hasRole("ADMIN")
