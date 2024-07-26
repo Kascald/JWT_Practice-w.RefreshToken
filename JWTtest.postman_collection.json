@@ -1,0 +1,151 @@
+{
+	"info": {
+		"_postman_id": "4fd4af16-ed71-4982-a0ab-a778ba9110f9",
+		"name": "JWTtest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33540867"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8080/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "Test@test.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "testme",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/roleTest/userInfo",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "input Token given in Login Process",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/roleTest/userInfo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"roleTest",
+						"userInfo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/user/api/signup",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "firstName",
+							"value": "Kim",
+							"type": "text"
+						},
+						{
+							"key": "lastName",
+							"value": "GH",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "Test@test.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "testme",
+							"type": "text"
+						},
+						{
+							"key": "birthDay",
+							"value": "1996/05/04",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "male",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "000-0000-0001",
+							"type": "text"
+						},
+						{
+							"key": "legion",
+							"value": "south/korea",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/user/api/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"user",
+						"api",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

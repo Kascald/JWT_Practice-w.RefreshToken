@@ -23,11 +23,6 @@ public class TestController {
 		return "HELLO " + name;
 	}
 
-	@GetMapping("/admin")
-	public String admin() {
-		return "admin confirm";
-	}
-
 	@GetMapping("/userInfo")
 	public String infoView() {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
