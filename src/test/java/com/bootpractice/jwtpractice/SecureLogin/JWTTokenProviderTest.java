@@ -75,12 +75,12 @@ public class JWTTokenProviderTest {
 		assertTrue(jwtTokenProvider.validateToken(token));
 	}
 
-	@Test
-	public void testSaveRefreshToken() {
-		String refreshToken = jwtTokenProvider.createRefreshToken("testUser",  Arrays.asList("ROLE_USER"));
-		jwtTokenProvider.saveRefreshToken(refreshToken);
-		verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
-	}
+//	@Test
+//	public void testSaveRefreshToken() {
+//		String refreshToken = jwtTokenProvider.createRefreshToken("testUser",  Arrays.asList("ROLE_USER"));
+//		jwtTokenProvider.saveRefreshToken(refreshToken);
+//		verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
+//	}
 
 	@Test
 	public void testValidateToken() {
@@ -94,10 +94,10 @@ public class JWTTokenProviderTest {
 		assertFalse(jwtTokenProvider.isTokenExpiration(token));
 	}
 
-	@Test
-	public void testIsExistsRefreshToken() {
-		String refreshToken = jwtTokenProvider.createRefreshToken("testUser", Arrays.asList("ROLE_USER"));
-		jwtTokenProvider.saveRefreshToken(refreshToken);
-		assertFalse(jwtTokenProvider.isExistsRefreshToken(refreshToken));
-	}
+//	@Test
+//	public void testIsExistsRefreshToken() {
+//		String refreshToken = jwtTokenProvider.createRefreshToken("testUser", Arrays.asList("ROLE_USER"));
+//		jwtTokenProvider.saveRefreshToken(refreshToken);
+//		assertFalse(jwtTokenProvider.isExistsRefreshToken(refreshToken));
+//	}
 }

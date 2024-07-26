@@ -1,20 +1,16 @@
 package com.bootpractice.jwtpractice.controller;
 
 
-import com.bootpractice.jwtpractice.SecureLogin.JWTTokenProvider;
 import com.bootpractice.jwtpractice.SecureLogin.TokenService;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
 @Controller
@@ -47,9 +43,21 @@ public class reissueController {
 		String newAccess = tokenService.refreshNewToken(refresh).get("Access");
 		String newRefresh = tokenService.refreshNewToken(refresh).get("refresh");
 
+		//토큰 삭제 , 블랙리스트 등록
+		tokenService.deleteRefreshToken(refresh);
+		tokenService.saveInBlackList(refresh);
+		//새 토큰 저장
+		tokenService.saveRefreshTokenInDB(newRefresh);
+
+		//새 토큰 헤더설정, 새 리프레시 토큰 쿠키저장
 		response.setHeader("Authorization", newAccess);
-		tokenService.newRefreshTokenSave(response,newRefresh);
+		tokenService.newRefreshTokenSaveInCookie(response, newRefresh);
 
 		return new ResponseEntity<>(OK);
+	}
+
+	@GetMapping("/cleanUpExpired")
+	public void tokenCleaning() {
+		tokenService.moveExpiredTokenToBlackList();
 	}
 }

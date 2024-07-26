@@ -2,11 +2,9 @@ package com.bootpractice.jwtpractice.SecureLogin;
 
 import com.bootpractice.jwtpractice.dto.CustomUserDetails;
 import com.bootpractice.jwtpractice.entity.RefreshToken;
-import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,12 +21,11 @@ import java.util.Optional;
 public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 	private final AuthenticationManager authenticationManager;
 	private final JWTTokenProvider jwtTokenProvider;
-	private final RefreshTokenRepository refreshTokenRepository;
-
-	public CustomLoginFilter(AuthenticationManager authenticationManager, JWTTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository) {
+	private final TokenService tokenService;
+	public CustomLoginFilter(AuthenticationManager authenticationManager, JWTTokenProvider jwtTokenProvider, TokenService tokenService) {
 		this.authenticationManager = authenticationManager;
 		this.jwtTokenProvider = jwtTokenProvider;
-		this.refreshTokenRepository = refreshTokenRepository;
+		this.tokenService = tokenService;
 	}
 
 
@@ -62,13 +59,13 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 
 		String refreshToken;
 
-		Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findBySubject(username);
+		Optional<RefreshToken> existingRefreshToken = tokenService.getRefreshToken(username);
 		if (existingRefreshToken.isPresent()) {
 			String existingToken = existingRefreshToken.get().getRefreshToken();
-			if (jwtTokenProvider.isRefreshTokenValid(existingToken)) {
+			if (tokenService.isRefreshTokenValid(existingToken)) {
 				refreshToken = existingToken;
 			} else {
-				jwtTokenProvider.deleteRefreshToken(existingToken);
+				tokenService.deleteRefreshToken(existingToken);
 				refreshToken = jwtTokenProvider.createRefreshToken(username,roles);
 			}
 		} else {
@@ -76,14 +73,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 		}
 		jwtTokenProvider.setAuthorizationHeaderForAccessToken(res, accessToken);
 //		jwtTokenProvider.setAuthorizationHeaderForRefreshToken(res, refreshToken);
-
-		// 클라이언트 측에서 리디렉션 처리
-//		Cookie refreshTokenCookie = new Cookie("Refresh-Token", refreshToken);
-//		refreshTokenCookie.setHttpOnly(true);
-//		refreshTokenCookie.setSecure(true);
-//		refreshTokenCookie.setPath("/");
-//		refreshTokenCookie.setMaxAge(60 * 60 * 1000);
-
+		tokenService.newRefreshTokenSaveInCookie(res, refreshToken);
 
 		res.setStatus(HttpServletResponse.SC_OK);
 

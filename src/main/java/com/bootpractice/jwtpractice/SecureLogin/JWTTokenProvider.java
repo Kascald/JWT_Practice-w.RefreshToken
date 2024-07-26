@@ -1,7 +1,6 @@
 package com.bootpractice.jwtpractice.SecureLogin;
 
 
-import com.bootpractice.jwtpractice.entity.RefreshToken;
 import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -17,7 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,29 +94,13 @@ public class JWTTokenProvider {
 		return generateToken(username,  userRole, REFRESH_EXPIRATION_PERIOD, "Refresh");
 	}
 
-	public void saveRefreshToken(String refreshToken) {
-		dbSaveRT(refreshToken);
-	}
 
-	private void dbSaveRT(String refreshToken) {
-		if (tokenKindConfirm(refreshToken).equals("Refresh"))
-			refreshTokenRepository.save(convertToRefreshTokenEntity(refreshToken));
-	}
 
 	public String tokenKindConfirm(String refreshToken) {
 		return Jwts.parser().verifyWith(mySecretKey).build().parseSignedClaims(refreshToken).getPayload().get("token_kind", String.class);
 	}
 
-	private RefreshToken convertToRefreshTokenEntity(String refreshToken) {
-		Claims refreshClaims = parsePayloadFromToken(refreshToken);
-		RefreshToken tokenEntity = new RefreshToken();
 
-		tokenEntity.setRefreshToken(refreshToken);
-		tokenEntity.setSubject(refreshClaims.getSubject());
-		tokenEntity.setExpiration(refreshClaims.getExpiration());
-
-		return tokenEntity;
-	}
 
 	public Claims parsePayloadFromToken(String token) throws JwtException {
 		return Jwts.parser()
@@ -126,7 +112,6 @@ public class JWTTokenProvider {
 	public String getUserEmailFromToken(String token) throws JwtException {
 		return parsePayloadFromToken(token).getSubject();
 	}
-
 
 	public boolean validateToken(String token) {
 		try {
@@ -153,20 +138,4 @@ public class JWTTokenProvider {
 		response.addCookie(cookie);
 	}
 
-	public boolean isExistsRefreshToken(String refreshToken) {
-		return Jwts.parser().verifyWith(mySecretKey).build().parseSignedClaims(refreshToken).getPayload().getExpiration().before(new Date());
-	}
-
-	public boolean isRefreshTokenValid(String token) {
-		if (!validateToken(token)) {
-			return false;
-		}
-
-		Optional<RefreshToken> refreshToken = refreshTokenRepository.findByRefreshToken(token);
-		return refreshToken.isPresent() && refreshToken.get().getExpiration().after(new Date());
-	}
-
-	public void deleteRefreshToken(String token) {
-		refreshTokenRepository.deleteByRefreshToken(token);
-	}
 }

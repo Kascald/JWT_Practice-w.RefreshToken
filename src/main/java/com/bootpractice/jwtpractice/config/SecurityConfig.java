@@ -4,7 +4,7 @@ package com.bootpractice.jwtpractice.config;
 import com.bootpractice.jwtpractice.SecureLogin.CustomLoginFilter;
 import com.bootpractice.jwtpractice.SecureLogin.JWTFilter;
 import com.bootpractice.jwtpractice.SecureLogin.JWTTokenProvider;
-import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
+import com.bootpractice.jwtpractice.SecureLogin.TokenService;
 import com.bootpractice.jwtpractice.utils.PasswordHasher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -29,12 +29,12 @@ public class SecurityConfig {
 
 	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JWTTokenProvider jwtTokenProvider;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final TokenService tokenService;
 
-	public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository) {
+	public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTTokenProvider jwtTokenProvider, TokenService tokenService) {
 		this.authenticationConfiguration = authenticationConfiguration;
 		this.jwtTokenProvider = jwtTokenProvider;
-		this.refreshTokenRepository = refreshTokenRepository;
+		this.tokenService = tokenService;
 	}
 
 	@Bean
@@ -83,14 +83,14 @@ public class SecurityConfig {
 				                 "/user/api/signup","/user/**",
 				                 "/user/signup","/login","/user/result","/result",
 				                 "/css/**","/favicon.ico").permitAll()
-//				.requestMatchers("/roleTest/**").hasAuthority("ADMIN")
+				//				.requestMatchers("/roleTest/**").hasAuthority("ADMIN")
 				.requestMatchers("/reissue").permitAll()
 				.requestMatchers("/roleTest/**").hasRole("ADMIN")
 				.anyRequest().authenticated());
 
 		http.addFilterBefore(new JWTFilter(jwtTokenProvider), CustomLoginFilter.class);
 
-		http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration),jwtTokenProvider,refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
+		http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration),jwtTokenProvider,tokenService), UsernamePasswordAuthenticationFilter.class);
 
 		http.sessionManagement((session)-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

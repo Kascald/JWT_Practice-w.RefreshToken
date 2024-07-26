@@ -1,13 +1,21 @@
 package com.bootpractice.jwtpractice.SecureLogin;
 
+import com.bootpractice.jwtpractice.entity.RefreshBlackList;
+import com.bootpractice.jwtpractice.entity.RefreshToken;
+import com.bootpractice.jwtpractice.repository.RefreshTokenBlackListRepository;
+import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -15,9 +23,19 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @Service
 public class TokenService {
 	private final JWTTokenProvider jwtTokenProvider;
-	public TokenService(JWTTokenProvider jwtTokenProvider) {
+	private final RefreshTokenRepository refreshTokenRepository;
+	private final RefreshTokenBlackListRepository refreshTokenBlackListRepository;
+
+	public TokenService(JWTTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository, RefreshTokenBlackListRepository refreshTokenBlackListRepository) {
 		this.jwtTokenProvider = jwtTokenProvider;
+		this.refreshTokenRepository = refreshTokenRepository;
+		this.refreshTokenBlackListRepository = refreshTokenBlackListRepository;
 	}
+
+	public Optional<RefreshToken> getRefreshToken(String username) {
+		return refreshTokenRepository.findBySubject(username);
+	}
+
 	public Map<String ,String> refreshNewToken(String refresh) {
 
 		String username = jwtTokenProvider.getUsernameFromToken(refresh);
@@ -45,10 +63,15 @@ public class TokenService {
 		if(!category.equals("Refresh")) {
 			return new ResponseEntity<>("invalid refresh token", BAD_REQUEST);
 		}
+
+		if(!isExistsInDB(refresh)) {
+			return new ResponseEntity<>("Invalid refresh token: not exists in DB", BAD_REQUEST);
+		}
+
 		return null;
 	}
 
-	public void newRefreshTokenSave(HttpServletResponse response , String newRefreshToken) {
+	public void newRefreshTokenSaveInCookie(HttpServletResponse response , String newRefreshToken) {
 		jwtTokenProvider.saveRefreshTokenInCookie(response, cookieGenerator("Refresh-Token", newRefreshToken));
 	}
 
@@ -58,6 +81,72 @@ public class TokenService {
 		cookie.setHttpOnly(true);
 
 		return cookie;
+	}
+	public Boolean isExistsInDB(String refresh) {
+		return refreshTokenRepository.existsByRefreshToken(refresh);
+	}
+
+	public void deleteRefreshToken(String refresh) {
+		refreshTokenRepository.deleteByRefreshToken(refresh);
+	}
+
+	public void saveInBlackList(String refresh) {
+		RefreshBlackList tokenBlacked = convertToRefreshBlack(refresh);
+		refreshTokenBlackListRepository.save(tokenBlacked);
+	}
+	public void saveRefreshTokenInDB(String newRefresh) {
+		if (jwtTokenProvider.tokenKindConfirm(newRefresh).equals("Refresh")) {
+			refreshTokenRepository.save(convertToRefreshTokenEntity(newRefresh));
+		}
+	}
+
+	private RefreshToken convertToRefreshTokenEntity(String refreshToken) {
+		Claims refreshClaims = jwtTokenProvider.parsePayloadFromToken(refreshToken);
+		RefreshToken tokenEntity = new RefreshToken();
+
+		tokenEntity.setRefreshToken(refreshToken);
+		tokenEntity.setSubject(refreshClaims.getSubject());
+		tokenEntity.setExpiration(refreshClaims.getExpiration());
+
+		return tokenEntity;
+	}
+
+	public RefreshBlackList convertToRefreshBlack(String refreshToken) {
+		Claims refreshClaims = jwtTokenProvider.parsePayloadFromToken(refreshToken);
+		RefreshBlackList blackToken = new RefreshBlackList();
+		Date blackedDate = new Date();
+
+		blackToken.setRefreshToken(refreshToken);
+		blackToken.setUsername(refreshClaims.getSubject());
+		blackToken.setBlackedDate(blackedDate);
+
+		return blackToken;
+	}
+
+	public boolean isRefreshTokenValid(String refreshToken) {
+		if (!jwtTokenProvider.validateToken(refreshToken)) {
+			return false;
+		}
+		Optional<RefreshToken> foundRefreshToken = refreshTokenRepository.findByRefreshToken(refreshToken);
+		return foundRefreshToken.isPresent() && foundRefreshToken.get().getExpiration().after(new Date());
+	}
+
+	@Transactional
+	public void moveExpiredTokenToBlackList() {
+		Date now = new Date();
+		List<RefreshToken> expiredTokens = refreshTokenRepository.findByExpirationBefore(now);
+
+		for (RefreshToken token : expiredTokens) {
+			RefreshBlackList blackList = new RefreshBlackList();
+
+			blackList.setUsername(token.getSubject());
+			blackList.setRefreshToken(token.getRefreshToken());
+			blackList.setBlackedDate(now);
+
+			refreshTokenBlackListRepository.save(blackList);
+		}
+
+		refreshTokenRepository.deleteByExpirationBefore(now);
 	}
 
 
