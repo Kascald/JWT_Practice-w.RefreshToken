@@ -35,8 +35,9 @@ public class UserController {
 		this.responseCoverter = responseCoverter;
 	}
 
+	@ResponseBody
 	@PostMapping("/signup")
-	public ResponseEntity<UserRes> registUser(@RequestBody SignUpRequest signUpRequest) throws ParseException {
+	public ResponseEntity<UserRes> registUser(SignUpRequest signUpRequest) throws ParseException {
 		ResponseEntity<UserRes> resResponseEntity;
 
 		try {

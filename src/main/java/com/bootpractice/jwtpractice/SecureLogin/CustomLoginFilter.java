@@ -6,6 +6,7 @@ import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,7 +43,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 	}
 
 	@Override
-	public void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain, Authentication auth) {
+	public void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain, Authentication auth) throws java.io.IOException {
 		System.out.println("Successful Authentication");
 		CustomUserDetails customUserDetails = (CustomUserDetails)auth.getPrincipal();
 		String username = customUserDetails.getUsername();
@@ -58,6 +59,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 		} else {
 			System.out.println("Access token generated: " + accessToken);
 		}
+
 		String refreshToken;
 
 		Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findBySubject(username);
@@ -73,7 +75,18 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 			refreshToken = jwtTokenProvider.createRefreshToken(username,roles);
 		}
 		jwtTokenProvider.setAuthorizationHeaderForAccessToken(res, accessToken);
-		jwtTokenProvider.setAuthorizationHeaderForRefreshToken(res, refreshToken);
+//		jwtTokenProvider.setAuthorizationHeaderForRefreshToken(res, refreshToken);
+
+		// 클라이언트 측에서 리디렉션 처리
+//		Cookie refreshTokenCookie = new Cookie("Refresh-Token", refreshToken);
+//		refreshTokenCookie.setHttpOnly(true);
+//		refreshTokenCookie.setSecure(true);
+//		refreshTokenCookie.setPath("/");
+//		refreshTokenCookie.setMaxAge(60 * 60 * 1000);
+
+
+		res.setStatus(HttpServletResponse.SC_OK);
+
 	}
 
 	@Override
@@ -83,4 +96,6 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter   {
 		System.out.println("Unsuccessful Authentication");
 		res.setStatus(401);
 	}
+
+
 }

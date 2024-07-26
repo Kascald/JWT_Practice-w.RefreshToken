@@ -14,12 +14,12 @@ public class PasswordHasher {
 	}
 
 
-	public String hash(String beforeEncodePassword) {
-		return passwordEncoder.encode(beforeEncodePassword);
+	public String hash(String password) { //beforeEncodePassword
+		return passwordEncoder.encode(password);
 	}
 
-	public boolean match(String rawPassword, String hashedPassword) {
-		return passwordEncoder.matches(rawPassword, hashedPassword);
+	public boolean match(String password, String hashedPassword) {//rawPassword , hashedPassword
+		return passwordEncoder.matches(password, hashedPassword);
 	}
 
 }

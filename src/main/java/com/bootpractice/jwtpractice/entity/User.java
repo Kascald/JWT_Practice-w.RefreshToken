@@ -28,7 +28,7 @@ public class User{
 
 	private String email;
 	private String gender;
-	private Date birthDay;
+	private String birthDay;
 
 	private String phone;
 	private String legion;

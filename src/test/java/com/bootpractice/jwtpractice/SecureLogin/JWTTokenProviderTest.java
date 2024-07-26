@@ -40,21 +40,21 @@ public class JWTTokenProviderTest {
 
 	@Test
 	public void testGenerateToken() {
-		String token = jwtTokenProvider.generateToken("testUser", Arrays.asList("ROLE_USER"), accessExpiration);
+		String token = jwtTokenProvider.generateToken("testUser", Arrays.asList("ROLE_USER"), accessExpiration, "Access");
 		assertNotNull(token);
 		assertTrue(jwtTokenProvider.validateToken(token));
 	}
 
 	@Test
 	public void testGetUsernameFromToken() {
-		String token = jwtTokenProvider.generateToken("testUser",  Arrays.asList("ROLE_USER"), accessExpiration);
+		String token = jwtTokenProvider.generateToken("testUser",  Arrays.asList("ROLE_USER"), accessExpiration,"Access");
 		String username = jwtTokenProvider.getUsernameFromToken(token);
 		assertEquals("Test User", username);
 	}
 
 	@Test
 	public void testGetRoleListFromToken() {
-		String token = jwtTokenProvider.generateToken("testUser",  Arrays.asList("ROLE_USER"), accessExpiration);
+		String token = jwtTokenProvider.generateToken("testUser",  Arrays.asList("ROLE_USER"), accessExpiration, "Access");
 		Claims claims = jwtTokenProvider.parsePayloadFromToken(token);
 		List<String> roles = claims.get("userRole", List.class);
 		assertEquals(1, roles.size());

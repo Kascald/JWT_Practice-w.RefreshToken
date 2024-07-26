@@ -6,6 +6,7 @@ import com.bootpractice.jwtpractice.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,34 +23,35 @@ import java.util.stream.Collectors;
 @Service
 public class JWTTokenProvider {
 
-	private SecretKey mySecretKey;
+	private final SecretKey mySecretKey;
 	private final RefreshTokenRepository refreshTokenRepository;
 
 	//	@Value("${accessTokenExpiration}")
-	private long ACCESS_EXPIRATION_PERIOD;   //10 min => millseeconds
+	private final long ACCESS_EXPIRATION_PERIOD;   //10 min => milliseconds
 	//	@Value("${refreshTokenExpiration}")
-	private long REFRESH_EXPIRATION_PERIOD;   //1 hour => millseeconds
+	private final long REFRESH_EXPIRATION_PERIOD;   //1 hour => milliseconds
 
 
 	public JWTTokenProvider(RefreshTokenRepository refreshTokenRepository, @Value("${myJwtRandomKeyHashed}")String jwtSecretKey,
-	                        @Value("${accessTokenExpiration}")long accessExpiration, @Value("${refreshTokenExpiration}")long refreshExpriation) {
+	                        @Value("${accessTokenExpiration}")long accessExpiration, @Value("${refreshTokenExpiration}")long refreshExpiration) {
 		this.refreshTokenRepository = refreshTokenRepository;
 		mySecretKey = new SecretKeySpec(jwtSecretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
 		ACCESS_EXPIRATION_PERIOD = accessExpiration;
-		REFRESH_EXPIRATION_PERIOD = refreshExpriation;
+		REFRESH_EXPIRATION_PERIOD = refreshExpiration;
 	}
 
 	public String generateToken(String username
-			, List<String> userRole, Long expriation) {
+			, List<String> userRole, Long tokenExpiration, String tokenKind) {
 		ZoneId zoneId = ZoneId.of("Asia/Seoul");
 		Instant now = ZonedDateTime.now(zoneId).toInstant();
 		Date issuedAt = Date.from(now);
-		Date expiration = Date.from(now.plusMillis(expriation));
+		Date expiration = Date.from(now.plusMillis(tokenExpiration));
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("userRole", userRole);
 
 		return Jwts.builder()
 				.subject(username)
+				.claim("token_kind",tokenKind)
 				.claims(claims)
 				.signWith(mySecretKey)
 				.issuedAt(issuedAt)
@@ -83,11 +85,11 @@ public class JWTTokenProvider {
 	}
 
 	public String createAccessToken(String username,  List<String> userRole) {
-		return generateToken(username, userRole, ACCESS_EXPIRATION_PERIOD);
+		return generateToken(username, userRole, ACCESS_EXPIRATION_PERIOD, "Access");
 	}
 
 	public String createRefreshToken(String username, List<String> userRole) {
-		return generateToken(username,  userRole, REFRESH_EXPIRATION_PERIOD);
+		return generateToken(username,  userRole, REFRESH_EXPIRATION_PERIOD, "Refresh");
 	}
 
 	public void saveRefreshToken(String refreshToken) {
@@ -95,7 +97,12 @@ public class JWTTokenProvider {
 	}
 
 	private void dbSaveRT(String refreshToken) {
-		refreshTokenRepository.save(convertToRefreshTokenEntity(refreshToken));
+		if (tokenKindConfirm(refreshToken).equals("Refresh"))
+			refreshTokenRepository.save(convertToRefreshTokenEntity(refreshToken));
+	}
+
+	public String tokenKindConfirm(String refreshToken) {
+		return Jwts.parser().verifyWith(mySecretKey).build().parseSignedClaims(refreshToken).getPayload().get("token_kind", String.class);
 	}
 
 	private RefreshToken convertToRefreshTokenEntity(String refreshToken) {
@@ -140,6 +147,10 @@ public class JWTTokenProvider {
 
 	public void setAuthorizationHeaderForRefreshToken(HttpServletResponse response, String refreshToken) {
 		response.setHeader("Refresh-Token", "Bearer "+ refreshToken);
+	}
+
+	public void saveRefreshTokenInCookie(HttpServletResponse response , Cookie cookie) {
+		response.addCookie(cookie);
 	}
 
 	public boolean isExistsRefreshToken(String refreshToken) {

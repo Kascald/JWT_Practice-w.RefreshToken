@@ -79,8 +79,12 @@ public class SecurityConfig {
 		http.httpBasic(AbstractHttpConfigurer::disable); */
 
 		http.authorizeHttpRequests((auth)-> auth
-				.requestMatchers("/user/api/login", "/", "/user/api/signup","/user/**","login").permitAll()
+				.requestMatchers("/user/api/login", "/",
+				                 "/user/api/signup","/user/**",
+				                 "/user/signup","/login","/user/result","/result",
+				                 "/css/**","/favicon.ico").permitAll()
 //				.requestMatchers("/roleTest/**").hasAuthority("ADMIN")
+				.requestMatchers("/reissue").permitAll()
 				.requestMatchers("/roleTest/**").hasRole("ADMIN")
 				.anyRequest().authenticated());
 

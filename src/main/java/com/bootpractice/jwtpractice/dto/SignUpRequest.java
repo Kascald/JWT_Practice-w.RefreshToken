@@ -2,15 +2,17 @@ package com.bootpractice.jwtpractice.dto;
 
 import com.bootpractice.jwtpractice.entity.User;
 import com.bootpractice.jwtpractice.utils.PasswordHasher;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Getter
+@Getter @Setter
 @RequiredArgsConstructor
 public class SignUpRequest implements UserRequest{
 
@@ -22,7 +24,6 @@ public class SignUpRequest implements UserRequest{
 	private String password;
 
 	private String birthDay;
-	private Date birthDayToDate;
 
 	private String gender;
 	private String phone;
@@ -44,7 +45,7 @@ public class SignUpRequest implements UserRequest{
 
 	@Override
 	public User convertToUserEntity(PasswordHasher passwordHasher) throws ParseException {
-		Date thisUserBirthDayDate = this.birthDayToDate(this.getBirthDay());
+//		Date thisUserBirthDayDate = this.birthDayToDate(this.getBirthDay());
 		return User.builder()
 				.username(this.getEmail())
 				.password(passwordHasher.hash(this.getPassword()))
@@ -52,7 +53,8 @@ public class SignUpRequest implements UserRequest{
 				.lastName(this.getLastName())
 				.email(this.getEmail())
 				.gender(this.getGender())
-				.birthDay(thisUserBirthDayDate)
+//				.birthDay(thisUserBirthDayDate)
+				.birthDay(this.getBirthDay())
 				.phone(this.getPhone())
 				.legion(this.legion)
 				.build();

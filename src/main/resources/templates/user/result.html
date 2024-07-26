@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>로그인 결과 보기</h1>
+<p>Access Token: <span id="AccessToekn"></span></p>
+<p>Refresh Token: <span id="refreshToken"></span></p>
+
+<script>
+    // Access Token을 로컬 스토리지에서 가져와서 표시
+    document.getElementById('AccessToekn').textContent = localStorage.getItem('AccessToekn');
+
+    // Refresh Token은 HttpOnly 쿠키에 저장되므로 JavaScript로 접근할 수 없습니다.
+    document.getElementById('Refresh-Token').textContent = 'Stored in HttpOnly Cookie';
+
+
+    function makeAuthenticatedRequest(url, options ={}) {
+        let accessToken = localStorage.getItem('AccessToken');
+
+        if(!accessToken) {
+            return refreshAccessToken().then(newAccessToken => {
+                return fetchWithToken(url, newAccessToken, options);
+            });
+        }else {
+            return fetchWithToken(url, accessToken, options).then(response => {
+                if(response.status === 401) {
+                    return refreshAccessToken().then(newAccessToken => {
+                        return fetchWithToken(url, newAccessToken, options);
+                    });
+                }
+                return response;
+            });
+        }
+    }
+
+    function fetchWithToken(url, token ,options) {
+        options.headers = {
+            ...options.headers,
+            'Authorization': 'Bearer' + token
+        };
+        return fetch(url,options);
+    }
+
+    function refreshAccessToken() {
+        return fetch('/reissue', {
+            method: 'POST',
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(data => {
+                const newAccessToken = data.accessToken;
+                localStorage.setItem('AccessToken', newAccessToken);
+                return newAccessToken;
+            })
+            .catch(error => {
+                console.error("Error refreshing Token", error);
+            })
+    }
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ package com.bootpractice.jwtpractice.SecureLogin;
 
 import com.bootpractice.jwtpractice.dto.CustomUserDetails;
 import com.bootpractice.jwtpractice.entity.User;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 public class JWTFilter extends OncePerRequestFilter {
@@ -39,11 +41,26 @@ public class JWTFilter extends OncePerRequestFilter {
 		//Authorization Bearer token get
 		String token = authorization.split(" ")[1];
 
-		if (jwtTokenProvider.isTokenExpiration(token)) {
-			logger.info("token expired");
-			filterChain.doFilter(request,response);
+		try {
+			jwtTokenProvider.isTokenExpiration(authorization);
+		} catch (ExpiredJwtException e) {
+			PrintWriter writer = response.getWriter();
+			writer.print("Access Token Expired");
+
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}
+
+		String category = jwtTokenProvider.tokenKindConfirm(authorization);
+
+		if(!category.equals("Access")) {
+			PrintWriter writer = response.getWriter();
+			writer.print("Access Token Invalid");
+
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
+
 
 		String username = jwtTokenProvider.getUsernameFromToken(token);
 		List<String> roleList = jwtTokenProvider.getRoleList(token);
