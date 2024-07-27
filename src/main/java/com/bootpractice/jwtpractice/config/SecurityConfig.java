@@ -1,10 +1,7 @@
 package com.bootpractice.jwtpractice.config;
 
 
-import com.bootpractice.jwtpractice.SecureLogin.CustomLoginFilter;
-import com.bootpractice.jwtpractice.SecureLogin.JWTFilter;
-import com.bootpractice.jwtpractice.SecureLogin.JWTTokenProvider;
-import com.bootpractice.jwtpractice.SecureLogin.TokenService;
+import com.bootpractice.jwtpractice.SecureLogin.*;
 import com.bootpractice.jwtpractice.utils.PasswordHasher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -92,6 +90,8 @@ public class SecurityConfig {
 		http.addFilterBefore(new JWTFilter(jwtTokenProvider), CustomLoginFilter.class);
 
 		http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration),jwtTokenProvider,tokenService), UsernamePasswordAuthenticationFilter.class);
+
+		http.addFilterBefore(new CustomLogoutFilter(jwtTokenProvider, tokenService), LogoutFilter.class);
 
 		http.sessionManagement((session)-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
